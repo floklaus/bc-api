@@ -1,0 +1,15 @@
+meta {
+  name: get beaches
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{protocol}}{{bc-api-url}}/beaches
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,0 +1,15 @@
+meta {
+  name: geocode all
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{protocol}}{{bc-api-url}}/import/MA/2021
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

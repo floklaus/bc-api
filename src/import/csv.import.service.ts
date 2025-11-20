@@ -1,0 +1,144 @@
+import { Injectable } from '@nestjs/common';
+import * as fs from 'fs';
+import * as csv from 'csv-parser';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Beach } from 'src/beaches/beach.entity';
+import { City } from 'src/location/city.entity';
+import { State } from 'src/location/state.entity';
+import { County } from 'src/location/county.entity';
+import { Measurement } from 'src/measurement/measurement.entity';
+import { BeachType } from 'src/beaches/beach.type';
+import { ReasonType } from 'src/measurement/reason.type';
+
+@Injectable()
+export class CsvImportService {
+  constructor(
+    @InjectRepository(Beach)
+    private beachesRepository: Repository<Beach>,
+    @InjectRepository(City)
+    private cityRepository: Repository<City>,
+    @InjectRepository(State)
+    private stateRepository: Repository<State>,
+    @InjectRepository(County)
+    private countyRepository: Repository<County>,
+    @InjectRepository(Measurement)
+    private measurementRepository: Repository<Measurement>,
+  ) {}
+
+  private async geocodeAddress(address: string, city: string, state: string): Promise<{ lat: number; lng: number } | null> {
+    try {
+      const fullAddress = `${address}, ${city}, ${state}, USA`;
+      const encodedAddress = encodeURIComponent(fullAddress);
+
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodedAddress}&format=json&limit=1`;
+
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'BC-API-Application'
+        }
+      });
+
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`Error geocoding address ${address}:`, error);
+      return null;
+    }
+  }
+
+  async importCsv(state: string, year: number): Promise<any[]> {
+
+    const basePath = "./data"
+
+    const filePath = `${basePath}/${state}-${year}.csv`;
+
+    const stateModel = await this.stateRepository.findOneBy({ name: state });
+
+    const results = [];
+     return new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', async (data) => {
+          results.push(data);
+
+          //county
+          const county = new County
+          county.name = data["County Description"];
+          county.code = data["County Code"];
+          this.countyRepository.upsert(county, ['name'])
+
+          const updatedCounty = await this.countyRepository.findOne({
+            where: { code: data["County Code"] }
+          });
+
+          //city
+          const city = new City
+          city.county = updatedCounty;
+          city.name = data["Community"];
+          city.code = data["Community Code"];
+          city.state = stateModel;
+
+          this.cityRepository.upsert(city, ['name'])
+          
+          const updatedCity = await this.cityRepository.findOne({
+            where: { code: data["Community Code"] }
+          });
+
+          // Check if beach already exists
+          let existingBeach = await this.beachesRepository.findOne({
+            where: { name: data["Beach Name"] }
+          });
+
+          // Only geocode if beach doesn't exist or has placeholder coordinates
+          let coordinates = null;
+          if (!existingBeach || (existingBeach.latitude === 1 && existingBeach.longitude === 1)) {
+            coordinates = await this.geocodeAddress(
+              data["Beach Name"],
+              data["Community"],
+              state
+            );
+            // Rate limiting: wait 1 second between requests
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+
+          const beach = new Beach
+          beach.name = data["Beach Name"];
+          beach.type = Object.entries(BeachType).find(([key, value]) => value === data["Beach Type Description"])?.[1];
+          beach.latitude = coordinates?.lat ?? existingBeach?.latitude ?? 1;
+          beach.longitude = coordinates?.lng ?? existingBeach?.longitude ?? 1;
+          beach.city = updatedCity;
+
+          await this.beachesRepository.upsert(beach, ['name'])
+
+          const updatedBeach = await this.beachesRepository.findOne({
+            where: { name: data["Beach Name"] }
+          });
+
+          const measurement = new Measurement
+          measurement.asOf = new Date(data["Sample Date"]);
+          measurement.year = parseInt(data["Year"]);
+          measurement.reason = Object.entries(ReasonType).find(([key, value]) => value === data["Organism"])?.[1];
+          measurement.indicatorLevel = parseInt(data["Indicator Level"]);
+          measurement.viloation = data["Violation"] === "Yes" ? true : false;
+          measurement.beach = updatedBeach;
+
+          this.measurementRepository.upsert(measurement, ['asOf', 'beach', 'indicatorLevel']);
+        })
+        .on('end', () => {
+          resolve(results);
+        })
+        .on('error', (error) => {
+          reject(error);
+        });
+    });
+  }
+}
