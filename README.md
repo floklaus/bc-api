@@ -45,6 +45,16 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
+## Run with Docker
+
+You can also run the application using Docker.
+
+```bash
+$ docker compose up --build
+```
+
+The API will be available at `http://localhost:3001`.
+
 ## Run tests
 
 ```bash
