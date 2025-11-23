@@ -9,8 +9,9 @@ import { County } from 'src/location/county.entity';
 import { Measurement } from 'src/measurement/measurement.entity';
 
 @Module({
-    providers: [CsvImportService],
-    controllers: [CsvImportController],
-    imports: [TypeOrmModule.forFeature([Beach, City, State, County, Measurement])],
-  })
-export class ImportModule {}
+  providers: [CsvImportService],
+  controllers: [CsvImportController],
+  imports: [TypeOrmModule.forFeature([Beach, City, State, County, Measurement])],
+  exports: [CsvImportService],
+})
+export class ImportModule { }
