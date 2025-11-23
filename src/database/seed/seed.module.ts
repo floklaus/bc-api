@@ -9,6 +9,8 @@ import { State } from '../../location/state.entity';
 import { County } from '../../location/county.entity';
 import { Measurement } from '../../measurement/measurement.entity';
 
+import { StateSeeder } from './state.seeder';
+
 @Module({
     imports: [
         ConfigModule.forRoot({
@@ -27,7 +29,7 @@ import { Measurement } from '../../measurement/measurement.entity';
         }),
         TypeOrmModule.forFeature([Beach, City, State, County, Measurement]),
     ],
-    providers: [SeedService, CsvImportService],
+    providers: [SeedService, CsvImportService, StateSeeder],
     exports: [SeedService],
 })
 export class SeedModule { }

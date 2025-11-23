@@ -32,22 +32,26 @@ export class CsvImportService {
         try {
             const fullAddress = `${address}, ${city}, ${state}, USA`;
             const encodedAddress = encodeURIComponent(fullAddress);
+            const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
-            const url = `https://nominatim.openstreetmap.org/search?q=${encodedAddress}&format=json&limit=1`;
+            if (!apiKey) {
+                this.logger.error('GOOGLE_MAPS_API_KEY is not defined');
+                return null;
+            }
 
-            const response = await fetch(url, {
-                headers: {
-                    'User-Agent': 'BC-API-Application'
-                }
-            });
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${apiKey}`;
 
+            const response = await fetch(url);
             const data = await response.json();
 
-            if (data && data.length > 0) {
+            if (data.status === 'OK' && data.results && data.results.length > 0) {
+                const location = data.results[0].geometry.location;
                 return {
-                    lat: parseFloat(data[0].lat),
-                    lng: parseFloat(data[0].lon)
+                    lat: location.lat,
+                    lng: location.lng
                 };
+            } else {
+                this.logger.error(`Geocoding failed for ${address}: ${data.status} - ${data.error_message || ''}`);
             }
 
             return null;
@@ -108,8 +112,8 @@ export class CsvImportService {
                             data["Community"],
                             state
                         );
-                        // Rate limiting: wait 1 second between requests
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        // Rate limiting: Google Maps has higher limits
+                        // await new Promise(resolve => setTimeout(resolve, 100));
                     }
 
                     const beach = new Beach

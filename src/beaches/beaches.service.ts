@@ -18,27 +18,27 @@ export class BeachesService {
     try {
       const fullAddress = `${address}, ${city}, ${state}, USA`;
       const encodedAddress = encodeURIComponent(fullAddress);
+      const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
-      // Using Nominatim (OpenStreetMap's geocoding service) - free and no API key required
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodedAddress}&format=json&limit=1`;
+      if (!apiKey) {
+        this.logger.error('GOOGLE_MAPS_API_KEY is not defined');
+        return null;
+      }
 
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'BC-API-Application'
-        }
-      });
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${apiKey}`;
 
+      const response = await fetch(url);
       const data = await response.json();
 
-
-
-
-      if (data && data.length > 0) {
-        this.logger.error(`lat ${data[0].lat}, lon ${data[0].lon}`);
+      if (data.status === 'OK' && data.results && data.results.length > 0) {
+        const location = data.results[0].geometry.location;
+        this.logger.log(`Geocoded ${address}: ${location.lat}, ${location.lng}`);
         return {
-          lat: parseFloat(data[0].lat),
-          lng: parseFloat(data[0].lon)
+          lat: location.lat,
+          lng: location.lng
         };
+      } else {
+        this.logger.error(`Geocoding failed for ${address}: ${data.status} - ${data.error_message || ''}`);
       }
 
       return null;
@@ -101,8 +101,8 @@ export class BeachesService {
           failed++;
         }
 
-        // Rate limiting: wait 1 second between requests to respect Nominatim's usage policy
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Rate limiting: Google Maps has higher limits, but keeping a small delay is good practice if processing many
+        // await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
         this.logger.error(`Failed to geocode beach ${beach.name}:`, error);
         failed++;
