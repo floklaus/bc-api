@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Beach } from './beach.entity';
@@ -10,7 +10,9 @@ export class BeachesService {
   constructor(
     @InjectRepository(Beach)
     private beachesRepository: Repository<Beach>,
-  ) {}
+  ) { }
+
+  private readonly logger = new Logger(BeachesService.name);
 
   async geocodeAddress(address: string, city: string, state: string): Promise<{ lat: number; lng: number } | null> {
     try {
@@ -32,7 +34,7 @@ export class BeachesService {
 
 
       if (data && data.length > 0) {
-        console.error(`lat ${data[0].lat}, lon ${data[0].lon}`);
+        this.logger.error(`lat ${data[0].lat}, lon ${data[0].lon}`);
         return {
           lat: parseFloat(data[0].lat),
           lng: parseFloat(data[0].lon)
@@ -41,7 +43,7 @@ export class BeachesService {
 
       return null;
     } catch (error) {
-      console.error(`Error geocoding address ${address}:`, error);
+      this.logger.error(`Error geocoding address ${address}:`, error);
       return null;
     }
   }
@@ -76,13 +78,13 @@ export class BeachesService {
       relations: ['city', 'city.state']
     });
 
-    console.log(`Found ${beaches.length} beaches to process`);
+    this.logger.log(`Found ${beaches.length} beaches to process`);
 
     let updated = 0;
     let failed = 0;
 
     for (const beach of beaches) {
-      console.log(`Processing beach: ${beach.name}, ${beach.city.name}`);
+      this.logger.log(`Processing beach: ${beach.name}, ${beach.city.name}`);
       try {
         const coordinates = await this.geocodeAddress(
           beach.name,
@@ -102,7 +104,7 @@ export class BeachesService {
         // Rate limiting: wait 1 second between requests to respect Nominatim's usage policy
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
-        console.error(`Failed to geocode beach ${beach.name}:`, error);
+        this.logger.error(`Failed to geocode beach ${beach.name}:`, error);
         failed++;
       }
     }
@@ -110,17 +112,17 @@ export class BeachesService {
     return { updated, failed };
   }
 
-findAll() {
+  findAll() {
     return this.beachesRepository.find({ relations: ['city', 'measurements'] });
-}
+  }
 
-findOne(id: number) {
+  findOne(id: number) {
     return this.beachesRepository.findOne({ where: { id }, relations: ['city', 'measurements'] });
-}
+  }
 
-create(beach: Partial<Beach>) {
+  create(beach: Partial<Beach>) {
     return this.beachesRepository.save(beach);
-}
+  }
 
   async update(id: number, beach: Partial<Beach>) {
     await this.beachesRepository.update(id, beach);

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as csv from 'csv-parser';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +13,8 @@ import { ReasonType } from 'src/measurement/reason.type';
 
 @Injectable()
 export class CsvImportService {
+  private readonly logger = new Logger(CsvImportService.name);
+
   constructor(
     @InjectRepository(Beach)
     private beachesRepository: Repository<Beach>,
@@ -24,7 +26,7 @@ export class CsvImportService {
     private countyRepository: Repository<County>,
     @InjectRepository(Measurement)
     private measurementRepository: Repository<Measurement>,
-  ) {}
+  ) { }
 
   private async geocodeAddress(address: string, city: string, state: string): Promise<{ lat: number; lng: number } | null> {
     try {
@@ -50,7 +52,7 @@ export class CsvImportService {
 
       return null;
     } catch (error) {
-      console.error(`Error geocoding address ${address}:`, error);
+      this.logger.error(`Error geocoding address ${address}:`, error);
       return null;
     }
   }
@@ -64,7 +66,7 @@ export class CsvImportService {
     const stateModel = await this.stateRepository.findOneBy({ name: state });
 
     const results = [];
-     return new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       fs.createReadStream(filePath)
         .pipe(csv())
         .on('data', async (data) => {
@@ -88,7 +90,7 @@ export class CsvImportService {
           city.state = stateModel;
 
           this.cityRepository.upsert(city, ['name'])
-          
+
           const updatedCity = await this.cityRepository.findOne({
             where: { code: data["Community Code"] }
           });

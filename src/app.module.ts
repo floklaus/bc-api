@@ -22,6 +22,8 @@ import { MeasurementModule } from './measurement/measurement.module';
       synchronize: false,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       autoLoadEntities: true,
+      migrationsRun: true,
+      migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
     }),
     BeachesModule,
     AuthModule,
@@ -30,4 +32,4 @@ import { MeasurementModule } from './measurement/measurement.module';
     MeasurementModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

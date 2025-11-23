@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Logger } from '@nestjs/common';
 import { BeachesService } from './beaches.service';
 import { Beach } from './beach.entity';
 //import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -6,17 +6,19 @@ import { Beach } from './beach.entity';
 @Controller('beaches')
 //@UseGuards(JwtAuthGuard)
 export class BeachesController {
-  constructor(private readonly beachesService: BeachesService) {}
+  private readonly logger = new Logger(BeachesController.name);
+
+  constructor(private readonly beachesService: BeachesService) { }
 
   @Get()
   findAll() {
-    console.log('Fetching all beaches');
+    this.logger.log('Fetching all beaches');
     return this.beachesService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: number) {
-    console.log(`Fetching beach with id: ${id}`);
+    this.logger.log(`Fetching beach with id: ${id}`);
     return this.beachesService.findOne(id);
   }
 
