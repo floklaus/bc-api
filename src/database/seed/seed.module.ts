@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { SeedService } from './seed.service';
-import { ImportModule } from '../../import/import.module';
+import { CsvImportService } from './csv-import.service';
 import { Beach } from '../../beaches/beach.entity';
 import { City } from '../../location/city.entity';
 import { State } from '../../location/state.entity';
@@ -25,9 +25,9 @@ import { Measurement } from '../../measurement/measurement.entity';
             entities: [Beach, City, State, County, Measurement],
             autoLoadEntities: true,
         }),
-        ImportModule,
+        TypeOrmModule.forFeature([Beach, City, State, County, Measurement]),
     ],
-    providers: [SeedService],
+    providers: [SeedService, CsvImportService],
     exports: [SeedService],
 })
 export class SeedModule { }

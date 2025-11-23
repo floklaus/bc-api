@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BeachesModule } from './beaches/beaches.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { ImportModule } from './import/import.module';
 import { LocationModule } from './location/location.module';
 import { MeasurementModule } from './measurement/measurement.module';
 
@@ -27,7 +26,6 @@ import { MeasurementModule } from './measurement/measurement.module';
     }),
     BeachesModule,
     AuthModule,
-    ImportModule,
     LocationModule,
     MeasurementModule,
   ],

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { CsvImportService } from '../../import/csv.import.service';
+import { CsvImportService } from './csv-import.service';
 import * as fs from 'fs';
 import * as path from 'path';
 
