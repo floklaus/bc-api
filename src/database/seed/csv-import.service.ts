@@ -70,81 +70,84 @@ export class CsvImportService {
         const stateModel = await this.stateRepository.findOneBy({ name: state });
 
         const results = [];
-        return new Promise((resolve, reject) => {
-            fs.createReadStream(filePath)
-                .pipe(csv())
-                .on('data', async (data) => {
-                    results.push(data);
+        const stream = fs.createReadStream(filePath).pipe(csv());
 
-                    //county
-                    const county = new County
-                    county.name = data["County Description"];
-                    county.code = data["County Code"];
-                    this.countyRepository.upsert(county, ['name'])
+        for await (const data of stream) {
+            results.push(data);
 
-                    const updatedCounty = await this.countyRepository.findOne({
-                        where: { code: data["County Code"] }
-                    });
+            //county
+            let county = await this.countyRepository.findOne({
+                where: [
+                    { code: data["County Code"] },
+                    { name: data["County Description"] }
+                ]
+            });
 
-                    //city
-                    const city = new City
-                    city.county = updatedCounty;
-                    city.name = data["Community"];
-                    city.code = data["Community Code"];
-                    city.state = stateModel;
+            if (!county) {
+                county = new County();
+            }
+            county.name = data["County Description"];
+            county.code = data["County Code"];
+            await this.countyRepository.save(county);
 
-                    this.cityRepository.upsert(city, ['name'])
+            //city
+            let city = await this.cityRepository.findOne({
+                where: [
+                    { code: data["Community Code"] },
+                    { name: data["Community"] }
+                ]
+            });
 
-                    const updatedCity = await this.cityRepository.findOne({
-                        where: { code: data["Community Code"] }
-                    });
+            if (!city) {
+                city = new City();
+            }
+            city.county = county;
+            city.name = data["Community"];
+            city.code = data["Community Code"];
+            city.state = stateModel;
 
-                    // Check if beach already exists
-                    let existingBeach = await this.beachesRepository.findOne({
-                        where: { name: data["Beach Name"] }
-                    });
+            await this.cityRepository.save(city);
 
-                    // Only geocode if beach doesn't exist or has placeholder coordinates
-                    let coordinates = null;
-                    if (!existingBeach || (existingBeach.latitude === 1 && existingBeach.longitude === 1)) {
-                        coordinates = await this.geocodeAddress(
-                            data["Beach Name"],
-                            data["Community"],
-                            state
-                        );
-                        // Rate limiting: Google Maps has higher limits
-                        // await new Promise(resolve => setTimeout(resolve, 100));
-                    }
+            // Check if beach already exists
+            let existingBeach = await this.beachesRepository.findOne({
+                where: { name: data["Beach Name"] }
+            });
 
-                    const beach = new Beach
-                    beach.name = data["Beach Name"];
-                    beach.type = Object.entries(BeachType).find(([key, value]) => value === data["Beach Type Description"])?.[1];
-                    beach.latitude = coordinates?.lat ?? existingBeach?.latitude ?? 1;
-                    beach.longitude = coordinates?.lng ?? existingBeach?.longitude ?? 1;
-                    beach.city = updatedCity;
+            // Only geocode if beach doesn't exist or has placeholder coordinates
+            let coordinates = null;
+            if (!existingBeach || (existingBeach.latitude === 1 && existingBeach.longitude === 1)) {
+                coordinates = await this.geocodeAddress(
+                    data["Beach Name"],
+                    data["Community"],
+                    state
+                );
+                // Rate limiting: Google Maps has higher limits
+                // await new Promise(resolve => setTimeout(resolve, 100));
+            }
 
-                    await this.beachesRepository.upsert(beach, ['name'])
+            let beach = existingBeach;
+            if (!beach) {
+                beach = new Beach();
+            }
+            beach.name = data["Beach Name"];
+            beach.type = Object.entries(BeachType).find(([key, value]) => value === data["Beach Type Description"])?.[1];
+            beach.latitude = coordinates?.lat ?? existingBeach?.latitude ?? 1;
+            beach.longitude = coordinates?.lng ?? existingBeach?.longitude ?? 1;
+            beach.city = city;
 
-                    const updatedBeach = await this.beachesRepository.findOne({
-                        where: { name: data["Beach Name"] }
-                    });
+            await this.beachesRepository.save(beach);
 
-                    const measurement = new Measurement
-                    measurement.asOf = new Date(data["Sample Date"]);
-                    measurement.year = parseInt(data["Year"]);
-                    measurement.reason = Object.entries(ReasonType).find(([key, value]) => value === data["Organism"])?.[1];
-                    measurement.indicatorLevel = parseInt(data["Indicator Level"]);
-                    measurement.viloation = data["Violation"] === "Yes" ? true : false;
-                    measurement.beach = updatedBeach;
+            const measurement = new Measurement();
+            measurement.asOf = new Date(data["Sample Date"]);
+            measurement.year = parseInt(data["Year"]);
+            measurement.reason = Object.entries(ReasonType).find(([key, value]) => value === data["Organism"])?.[1];
+            measurement.indicatorLevel = parseInt(data["Indicator Level"]);
+            measurement.viloation = data["Violation"] === "Yes" ? true : false;
+            measurement.beach = beach;
 
-                    this.measurementRepository.upsert(measurement, ['asOf', 'beach', 'indicatorLevel']);
-                })
-                .on('end', () => {
-                    resolve(results);
-                })
-                .on('error', (error) => {
-                    reject(error);
-                });
-        });
+            await this.measurementRepository.upsert(measurement, ['asOf', 'beach', 'indicatorLevel']);
+        }
+
+        return results;
     }
 }

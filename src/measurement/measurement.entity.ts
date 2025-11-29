@@ -3,8 +3,8 @@ import { BaseEntity } from 'src/database/base.entity';
 import { ReasonType } from './reason.type';
 import { Beach } from 'src/beaches/beach.entity';
 
-@Entity()
-@Unique("measurement_asOf_beach", ["asOf", "beach", "indicatorLevel"]) 
+@Entity('measurement')
+@Unique("measurement_asOf_beach", ["asOf", "beach", "indicatorLevel"])
 export class Measurement extends BaseEntity {
 
   @Column({ type: 'date' })

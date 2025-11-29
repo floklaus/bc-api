@@ -112,7 +112,7 @@ export class BeachesService {
     return { updated, failed };
   }
 
-  findAll() {
+  async findAll() {
     return this.beachesRepository.find({ relations: ['city', 'measurements'] });
   }
 

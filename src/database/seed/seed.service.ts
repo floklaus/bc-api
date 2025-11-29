@@ -18,6 +18,10 @@ export class SeedService {
     async seed() {
         this.logger.log('Starting seeding process...');
         await this.stateSeeder.seed();
+
+        const tables = await this.dataSource.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
+        this.logger.log('Tables in DB: ' + JSON.stringify(tables));
+
         await this.seedBeaches();
         this.logger.log('Seeding process completed.');
     }

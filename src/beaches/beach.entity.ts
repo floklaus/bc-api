@@ -4,7 +4,7 @@ import { Measurement } from '../measurement/measurement.entity';
 import { BaseEntity } from 'src/database/base.entity';
 import { BeachType } from './beach.type';
 
-@Entity()
+@Entity('beach')
 export class Beach extends BaseEntity {
 
   @Column()
@@ -18,7 +18,7 @@ export class Beach extends BaseEntity {
   longitude: number;
 
 
-  
+
   @Column({
     type: "enum",
     enum: BeachType,
