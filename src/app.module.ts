@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BeachesModule } from './beaches/beaches.module';
 import { ConfigModule } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AuthModule } from './auth/auth.module';
 import { LocationModule } from './location/location.module';
 import { MeasurementModule } from './measurement/measurement.module';
@@ -9,6 +10,9 @@ import { MeasurementModule } from './measurement/measurement.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    CacheModule.register({
       isGlobal: true,
     }),
     TypeOrmModule.forRoot({

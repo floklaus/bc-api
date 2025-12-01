@@ -1,14 +1,17 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Logger, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { BeachesService } from './beaches.service';
 import { Beach } from './beach.entity';
 
 @Controller('beaches')
+@UseInterceptors(CacheInterceptor)
 export class BeachesController {
   private readonly logger = new Logger(BeachesController.name);
 
   constructor(private readonly beachesService: BeachesService) { }
 
   @Get()
+  @CacheTTL(300000) // 5 minutes
   async findAll() {
     const beaches = await this.beachesService.findAll();
     this.logger.log(`Fetching all beaches ${beaches?.length}`);

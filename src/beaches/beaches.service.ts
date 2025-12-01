@@ -75,6 +75,7 @@ export class BeachesService {
 
   async updateAllBeachCoordinates(): Promise<{ updated: number; failed: number }> {
     const beaches = await this.beachesRepository.find({
+      where: { latitude: 0, longitude: 0 },
       relations: ['city', 'city.state']
     });
 
