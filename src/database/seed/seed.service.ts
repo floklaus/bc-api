@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { CsvImportService } from './csv-import.service';
+import { BeaconService } from './beacon.service';
 import { StateSeeder } from './state.seeder';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -11,7 +11,7 @@ export class SeedService {
 
     constructor(
         private readonly dataSource: DataSource,
-        private readonly csvImportService: CsvImportService,
+        private readonly beaconService: BeaconService,
         private readonly stateSeeder: StateSeeder,
     ) { }
 
@@ -27,30 +27,13 @@ export class SeedService {
     }
 
     private async seedBeaches() {
-        this.logger.log('Seeding beaches from CSV files...');
-        const dataDir = path.join(process.cwd(), 'data');
-
-        if (!fs.existsSync(dataDir)) {
-            this.logger.warn(`Data directory not found at ${dataDir}`);
-            return;
-        }
-
-        const files = fs.readdirSync(dataDir);
-        const csvFiles = files.filter(file => file.match(/^[A-Z]{2}-\d{4}\.csv$/));
-
-        for (const file of csvFiles) {
-            const match = file.match(/^([A-Z]{2})-(\d{4})\.csv$/);
-            if (match) {
-                const state = match[1];
-                const year = parseInt(match[2], 10);
-                this.logger.log(`Importing ${file} (State: ${state}, Year: ${year})...`);
-                try {
-                    await this.csvImportService.importCsv(state, year);
-                    this.logger.log(`Successfully imported ${file}`);
-                } catch (error) {
-                    this.logger.error(`Failed to import ${file}:`, error);
-                }
-            }
+        this.logger.log('Seeding beaches from EPA BEACON API...');
+        try {
+            await this.beaconService.clearData();
+            await this.beaconService.importBeaches();
+            this.logger.log('Successfully imported beaches from API');
+        } catch (error) {
+            this.logger.error('Failed to import beaches from API:', error);
         }
     }
 }

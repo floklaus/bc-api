@@ -1,4 +1,5 @@
 export enum ReasonType {
   ECOLI = "E. Coli",
-  ENTEROCOCCI = "Enterococci"
+  ENTEROCOCCI = "Enterococci",
+  UNKNOWN = "Unknown"
 }

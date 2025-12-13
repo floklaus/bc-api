@@ -140,7 +140,7 @@ export class BeachesService {
   }
 
   findOne(id: number) {
-    return this.beachesRepository.findOne({ where: { id }, relations: ['city', 'measurements'] });
+    return this.beachesRepository.findOne({ where: { id }, relations: ['city', 'city.county', 'measurements'] });
   }
 
   create(beach: Partial<Beach>) {
