@@ -6,7 +6,7 @@ import { ReasonType } from './reason.type';
 import { Beach } from 'src/beaches/beach.entity';
 
 @Entity('measurement')
-@Unique("measurement_asOf_beach", ["asOf", "beach", "indicatorLevel"])
+@Unique("measurement_asOf_beach", ["asOf", "beach"])
 export class Measurement extends BaseEntity {
 
   @ApiProperty({ description: 'Date of measurement' })

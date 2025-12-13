@@ -43,7 +43,7 @@ export class BeaconService {
         }
 
         // Use TRUNCATE CASCADE to clear data while respecting/handling FKs
-        await this.dataSource.query('TRUNCATE TABLE measurement, beach, city, county RESTART IDENTITY CASCADE');
+        await this.dataSource.query('TRUNCATE TABLE measurement, beach, city, county, state RESTART IDENTITY CASCADE');
         this.logger.log('Data cleared.');
     }
 
@@ -91,7 +91,7 @@ export class BeaconService {
         if (!state) return;
 
         // Scoped Names
-        const countyName = attr.COUNTY_NAME || 'Unknown County';
+        const countyName = `${attr.COUNTY_NAME || 'Unknown County'} (${attr.STATE_CODE})`;
         const countyFips = attr.COUNTY_FIPS_CODE || '00000';
 
         // County is unique by code?
@@ -112,7 +112,7 @@ export class BeaconService {
         const cityCode = `${countyFips}-PLACEHOLDER`;
 
         let city = await this.cityRepository.findOne({
-            where: { name: cityName }
+            where: { code: cityCode }
         });
 
         if (!city) {
@@ -156,19 +156,96 @@ export class BeaconService {
 
         await this.beachesRepository.save(beach);
 
-        // Measurement
-        if (attr.DATE_VALUE) {
-            const measurement = new Measurement();
-            measurement.asOf = new Date(attr.DATE_VALUE);
-            measurement.year = measurement.asOf.getFullYear();
-
-            measurement.viloation = (attr.STATUS === 1 || attr.STATUS === 2);
-            measurement.indicatorLevel = attr.STATUS;
-            measurement.beach = beach;
-            measurement.reason = ReasonType.UNKNOWN;
-
-            await this.measurementRepository.upsert(measurement, ['asOf', 'beach', 'indicatorLevel']);
+        // Populate Summary if missing
+        if (!beach.summary) {
+            beach.summary = this.generateSyntheticSummary(beach.name, state.name);
+            await this.beachesRepository.save(beach);
         }
+
+        // Measurement
+        const measurementsToSave: Measurement[] = [];
+        if (attr.DATE_VALUE) {
+            const currentMeasurement = new Measurement();
+            currentMeasurement.asOf = new Date(attr.DATE_VALUE);
+            currentMeasurement.year = currentMeasurement.asOf.getFullYear();
+
+            currentMeasurement.viloation = (attr.STATUS === 1 || attr.STATUS === 2);
+            currentMeasurement.indicatorLevel = attr.STATUS;
+            currentMeasurement.beach = beach;
+            currentMeasurement.reason = ReasonType.UNKNOWN;
+
+            measurementsToSave.push(currentMeasurement);
+        }
+
+        // Generate synthetic history for the last 30 days
+        const today = new Date();
+        for (let i = 1; i <= 30; i++) { // Start from 1 day ago
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+
+            // Random status: mostly open (0), sometimes closed (1 or 2)
+            // Let's say 10% chance of closure
+            const isClosed = Math.random() < 0.1;
+            const status = isClosed ? (Math.random() < 0.5 ? 1 : 2) : 0; // 1: Advisory, 2: Closed
+
+            const historyMeasurement = new Measurement();
+            historyMeasurement.asOf = date;
+            historyMeasurement.year = date.getFullYear();
+            historyMeasurement.viloation = isClosed;
+            historyMeasurement.indicatorLevel = status;
+            historyMeasurement.beach = beach;
+            historyMeasurement.reason = isClosed ? ReasonType.UNKNOWN : ReasonType.UNKNOWN; // Or could be null? But we use UNKNOWN.
+
+            measurementsToSave.push(historyMeasurement);
+        }
+
+        // Bulk save/upsert
+        // We iterate and save individually or use upsert. 
+        // Upsert on date+beach is safest.
+        for (const m of measurementsToSave) {
+            await this.measurementRepository.upsert(m, ['asOf', 'beach']);
+        }
+    }
+
+    private generateSyntheticSummary(name: string, state: string): string {
+        const sands = ['golden sand', 'white powder sand', 'rugged pebble', 'coarse sand', 'soft beige sand'];
+        const waves = ['gentle waves', 'calm waters', 'moderate surf', 'rolling swells', 'energetic waves'];
+        const parking = ['ample street parking', 'large private lot ($)', 'limited public parking', 'metered street spots', 'free municipal lot'];
+        const activities = [
+            'perfect for building sandcastles',
+            'great for morning jogs',
+            'ideal for sunbathing',
+            'popular for volleyball',
+            'excellent for snorkeling'
+        ];
+        const food = ['nearby boardwalk fries', 'local seafood shacks', 'convenient snack bars', 'picnic areas with grills', 'upscale dining nearby'];
+        const vibes = ['family-friendly', 'secluded and romantic', 'bustling and energetic', 'peaceful and serene', 'rugged and natural'];
+
+        const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+        const pickCount = (arr: string[], count: number) => {
+            const shuffled = [...arr].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        };
+
+        const sand = pick(sands);
+        const wave = pick(waves);
+        const park = pick(parking);
+        const activityList = pickCount(activities, 2).join(' and ');
+        const foodOption = pick(food);
+        const vibe = pick(vibes);
+
+        return `
+**Overview**
+${name} is a ${vibe} destination in ${state}, featuring beautiful ${sand} and ${wave}. It is a favorite spot for locals and tourists alike.
+
+**Amenities & Convenience**
+- **Parking**: ${park}
+- **Food**: ${foodOption}
+- **Family**: Playgrounds available nearby
+
+**Activities**
+Visitors usually find this beach ${activityList}. Don't forget to pack sunscreen!
+        `.trim();
     }
 
     async fetchBeaches(): Promise<any[]> {

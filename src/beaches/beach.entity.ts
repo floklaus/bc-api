@@ -24,6 +24,14 @@ export class Beach extends BaseEntity {
   @Column('decimal', { precision: 10, scale: 6 })
   longitude: number;
 
+  @ApiProperty({ description: 'AI Summary of the beach', required: false })
+  @Column({ type: 'text', nullable: true })
+  summary: string;
+
+  @ApiProperty({ description: 'Image URL of the beach', required: false })
+  @Column({ nullable: true })
+  imageUrl: string;
+
 
 
   @ApiProperty({ enum: BeachType, description: 'Type of beach' })

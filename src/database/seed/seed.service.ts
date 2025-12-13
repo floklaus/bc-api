@@ -17,6 +17,10 @@ export class SeedService {
 
     async seed() {
         this.logger.log('Starting seeding process...');
+
+        // Clear all data first to start fresh (includes states now)
+        await this.beaconService.clearData();
+
         await this.stateSeeder.seed();
 
         const tables = await this.dataSource.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'");
@@ -29,7 +33,7 @@ export class SeedService {
     private async seedBeaches() {
         this.logger.log('Seeding beaches from EPA BEACON API...');
         try {
-            await this.beaconService.clearData();
+            // clearData is already called in seed()
             await this.beaconService.importBeaches();
             this.logger.log('Successfully imported beaches from API');
         } catch (error) {

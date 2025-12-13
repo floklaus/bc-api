@@ -19,6 +19,9 @@ export class State extends BaseEntity {
   @Column({ default: false })
   active: boolean;
 
+  @ApiProperty({ description: 'Number of beaches in state', required: false })
+  beachCount?: number;
+
   @ApiProperty({ type: () => [City], description: 'Cities in this state' })
   @OneToMany(() => City, (city) => city.state)
   cities: City[];
