@@ -1,0 +1,22 @@
+meta {
+  name: get all cities
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{protocol}}{{bc-api-url}}/beaches?state=MA&city=Dennis&asOf=2023-06-06
+  body: none
+  auth: inherit
+}
+
+params:query {
+  state: MA
+  city: Dennis
+  asOf: 2023-06-06
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

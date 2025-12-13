@@ -1,0 +1,21 @@
+meta {
+  name: get beaches
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://watersgeo.epa.gov/arcgis/rest/services/OWPROGRAM/BEACON/MapServer/0/query?where=STATE_NAME='FL'&outFields=*&f=json
+  body: none
+  auth: inherit
+}
+
+params:query {
+  where: STATE_NAME='FL'
+  outFields: *
+  f: json
+}
+
+settings {
+  encodeUrl: true
+}

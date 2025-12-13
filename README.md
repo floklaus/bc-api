@@ -1,109 +1,220 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Beach Monitor API (bc-api)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS-based REST API for monitoring beach water quality and closure status across Massachusetts. This backend service provides real-time beach status information based on bacteria measurements and pollution data.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+The Beach Monitor API tracks beach closures and water quality measurements for beaches across Massachusetts. It provides endpoints to query beach status, filter by location, and retrieve historical measurement data. The system automatically determines beach status (open/closed) based on bacteria indicator levels and violation thresholds.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+- **Framework**: NestJS 10.x
+- **Database**: PostgreSQL with TypeORM
+- **Authentication**: JWT with Passport
+- **Documentation**: Swagger/OpenAPI
+- **Caching**: Cache Manager
+- **Language**: TypeScript
 
-```bash
-$ pnpm install
+## Core Features
+
+### 1. Beach Management
+- **CRUD Operations**: Create, read, update, and delete beach records
+- **Beach Types**: Support for both Marine and Fresh water beaches
+- **Geolocation**: Latitude/longitude coordinates for each beach
+- **Status Calculation**: Automatic status determination based on measurements
+- **Geocoding**: Update beach coordinates using external geocoding services
+
+### 2. Water Quality Measurements
+- **Daily Measurements**: Track indicator levels (bacteria counts) by date
+- **Violation Detection**: Automatic flagging of measurements exceeding safe thresholds
+- **Historical Data**: Year-based indexing for efficient historical queries
+- **Reason Tracking**: Record reasons for measurements (routine testing, pollution events, etc.)
+
+### 3. Location Services
+- **State Management**: Track states with active/inactive status (currently focused on Massachusetts)
+- **City Management**: Organize beaches by city and county
+- **Hierarchical Structure**: State → County → City → Beach relationships
+- **Location Filtering**: Filter beaches by state and city
+
+### 4. Advanced Querying
+- **Multi-Filter Support**: Filter beaches by state, city, and date
+- **Status Filtering**: Query beaches by open/closed status
+- **Date-Based Status**: Calculate beach status for specific dates using `asOf` parameter
+- **Caching**: 5-minute cache for beach listings to improve performance
+
+### 5. API Documentation
+- **Swagger UI**: Interactive API documentation at `/api` endpoint
+- **OpenAPI Spec**: Complete API specification with request/response schemas
+- **Detailed Annotations**: Comprehensive descriptions for all endpoints and models
+
+### 6. Authentication & Security
+- **JWT Authentication**: Token-based authentication system
+- **CORS Configuration**: Configurable cross-origin resource sharing
+- **Environment-Based Config**: Secure credential management via environment variables
+
+## API Endpoints
+
+### Beaches
+- `GET /beaches` - List all beaches with optional filters (state, city, asOf)
+- `GET /beaches/:id` - Get detailed beach information including measurements
+- `POST /beaches` - Create a new beach
+- `PUT /beaches/:id` - Update beach information
+- `DELETE /beaches/:id` - Delete a beach
+- `POST /beaches/:id/geocode` - Update coordinates for a specific beach
+- `POST /beaches/geocode/all` - Update coordinates for all beaches
+
+### Location
+- `GET /states` - List all states (with optional active filter)
+- `GET /cities` - List cities (with optional state filter)
+
+### Measurements
+- Managed through beach relationships
+- Automatically linked to beaches
+- Violation status calculated based on indicator levels
+
+## Database Schema
+
+### Key Entities
+
+**Beach**
+- Name, latitude, longitude
+- Type (Marine/Fresh)
+- Relationship to City
+- Calculated status based on measurements
+
+**Measurement**
+- Date (asOf), year
+- Indicator level (bacteria count)
+- Violation status
+- Reason for measurement
+- Relationship to Beach
+
+**City**
+- Name and code
+- Relationships to State, County, and Beaches
+
+**State**
+- Name and code (e.g., "MA")
+- Active status flag
+
+## Environment Configuration
+
+Required environment variables:
+```env
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=postgres
+DATABASE_PASSWORD=your_password
+DATABASE_NAME=beach_monitor
+PORT=3001
+ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-## Compile and run the project
+## Getting Started
 
+### Installation
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm install
 ```
 
-## Run with Docker
-
-You can also run the application using Docker.
-
+### Database Setup
 ```bash
-$ docker compose up --build
+# Run migrations
+pnpm run migration:run
+
+# Seed initial data
+pnpm run seed
 ```
 
-The API will be available at `http://localhost:3001`.
-
-## Run tests
-
+### Development
 ```bash
-# unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+# Start in development mode with hot reload
+pnpm run start:dev
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### Production
 ```bash
-$ pnpm install -g mau
-$ mau deploy
+# Build the application
+pnpm run build
+
+# Start in production mode
+pnpm run start:prod
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## API Documentation
 
-## Resources
+Once running, access the interactive Swagger documentation at:
+```
+http://localhost:3001/api
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## Database Migrations
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+# Generate a new migration
+pnpm run migration:generate
 
-## Support
+# Create a blank migration
+pnpm run migration:create
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# Run pending migrations
+pnpm run migration:run
 
-## Stay in touch
+# Revert last migration
+pnpm run migration:revert
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Testing
 
-## License
+```bash
+# Unit tests
+pnpm run test
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# E2E tests
+pnpm run test:e2e
+
+# Test coverage
+pnpm run test:cov
+```
+
+## Project Structure
+
+```
+src/
+├── beaches/          # Beach management module
+├── measurement/      # Water quality measurements
+├── location/         # States, cities, counties
+├── auth/            # JWT authentication
+├── database/        # TypeORM config, migrations, seeds
+└── main.ts          # Application entry point
+```
+
+## Key Features Implementation
+
+### Dynamic Status Calculation
+Beach status is calculated dynamically based on the most recent measurement for a given date. If a measurement shows a violation (bacteria levels exceeding safe thresholds), the beach is marked as closed.
+
+### Caching Strategy
+Beach listings are cached for 5 minutes to reduce database load while ensuring reasonably fresh data for users.
+
+### Flexible Filtering
+The API supports multiple filter combinations:
+- Filter by state to see all beaches in Massachusetts
+- Filter by city to narrow down to specific municipalities
+- Use `asOf` parameter to check historical beach status
+
+## Data Seeding
+
+The project includes seed scripts to populate initial data:
+- States (with Massachusetts marked as active)
+- Cities and counties
+- Beach locations
+- Historical measurement data
+
+## Future Enhancements
+
+- Real-time notifications for beach closures
+- Integration with government water quality APIs
+- Mobile app support
+- Predictive analytics for beach closures
+- Multi-state expansion

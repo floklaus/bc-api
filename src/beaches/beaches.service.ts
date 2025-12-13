@@ -113,8 +113,30 @@ export class BeachesService {
     return { updated, failed };
   }
 
-  async findAll() {
-    return this.beachesRepository.find({ relations: ['city', 'measurements'] });
+  async findAll(filters?: { state?: string; city?: string; asOf?: string }) {
+    const where: any = {};
+
+    if (filters?.state) {
+      where.city = { state: { code: filters.state } };
+    }
+
+    if (filters?.city) {
+      where.city = { ...where.city, name: filters.city };
+    }
+
+    const beaches = await this.beachesRepository.find({
+      where,
+      relations: ['city', 'city.state', 'measurements']
+    });
+
+    if (filters?.asOf) {
+      const asOfDate = new Date(filters.asOf);
+      beaches.forEach(beach => {
+        beach.asOf = asOfDate;
+      });
+    }
+
+    return beaches;
   }
 
   findOne(id: number) {

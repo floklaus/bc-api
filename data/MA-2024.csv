@@ -5001,17 +5001,17 @@ Community Code,Community,County Code,County Description,Year,Sample Date,Beach N
 249,Richmond,003,Berkshire,2024,2024-08-19 00:00:00,Richmond Town Beach,Fresh,E. Coli,12.1,No
 249,Richmond,003,Berkshire,2024,2024-07-22 00:00:00,Richmond Town Beach,Fresh,E. Coli,4.1,No
 249,Richmond,003,Berkshire,2024,2024-06-11 00:00:00,Richmond Town Beach,Fresh,E. Coli,6.3,No
-193,Monterey,003,Berkshire,2024,2024-06-12 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,0.5,No
-193,Monterey,003,Berkshire,2024,2024-08-08 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,11,No
-193,Monterey,003,Berkshire,2024,2024-06-18 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,2,No
-193,Monterey,003,Berkshire,2024,2024-06-25 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,8.6,No
-193,Monterey,003,Berkshire,2024,2024-07-23 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,1,No
-193,Monterey,003,Berkshire,2024,2024-07-10 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,2,No
-193,Monterey,003,Berkshire,2024,2024-07-01 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,7.5,No
-193,Monterey,003,Berkshire,2024,2024-07-30 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,5.2,No
-193,Monterey,003,Berkshire,2024,2024-08-27 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,1,No
-193,Monterey,003,Berkshire,2024,2024-08-12 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,3.1,No
-193,Monterey,003,Berkshire,2024,2024-07-17 00:00:00,Seven Stones Beach (KSA),Fresh,E. Coli,0.5,No
+193,Monterey,003,Berkshire,2024,2024-06-12 00:00:00,Seven Stones Beach,Fresh,E. Coli,0.5,No
+193,Monterey,003,Berkshire,2024,2024-08-08 00:00:00,Seven Stones Beach,Fresh,E. Coli,11,No
+193,Monterey,003,Berkshire,2024,2024-06-18 00:00:00,Seven Stones Beach,Fresh,E. Coli,2,No
+193,Monterey,003,Berkshire,2024,2024-06-25 00:00:00,Seven Stones Beach,Fresh,E. Coli,8.6,No
+193,Monterey,003,Berkshire,2024,2024-07-23 00:00:00,Seven Stones Beach,Fresh,E. Coli,1,No
+193,Monterey,003,Berkshire,2024,2024-07-10 00:00:00,Seven Stones Beach,Fresh,E. Coli,2,No
+193,Monterey,003,Berkshire,2024,2024-07-01 00:00:00,Seven Stones Beach,Fresh,E. Coli,7.5,No
+193,Monterey,003,Berkshire,2024,2024-07-30 00:00:00,Seven Stones Beach,Fresh,E. Coli,5.2,No
+193,Monterey,003,Berkshire,2024,2024-08-27 00:00:00,Seven Stones Beach,Fresh,E. Coli,1,No
+193,Monterey,003,Berkshire,2024,2024-08-12 00:00:00,Seven Stones Beach,Fresh,E. Coli,3.1,No
+193,Monterey,003,Berkshire,2024,2024-07-17 00:00:00,Seven Stones Beach,Fresh,E. Coli,0.5,No
 022,Becket,003,Berkshire,2024,2024-07-22 00:00:00,Sherwood Forest - Arrow Beach,Fresh,E. Coli,34.5,No
 022,Becket,003,Berkshire,2024,2024-08-05 00:00:00,Sherwood Forest - Arrow Beach,Fresh,E. Coli,2419.6,Yes
 022,Becket,003,Berkshire,2024,2024-08-14 00:00:00,Sherwood Forest - Arrow Beach,Fresh,E. Coli,7.4,No

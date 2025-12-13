@@ -61,13 +61,13 @@ export class CsvImportService {
         }
     }
 
-    async importCsv(state: string, year: number): Promise<any[]> {
+    async importCsv(stateCode: string, year: number): Promise<any[]> {
 
         const basePath = "./data"
 
-        const filePath = `${basePath}/${state}-${year}.csv`;
+        const filePath = `${basePath}/${stateCode}-${year}.csv`;
 
-        const stateModel = await this.stateRepository.findOneBy({ name: state });
+        const stateModel = await this.stateRepository.findOneBy({ code: stateCode });
 
         const results = [];
         const stream = fs.createReadStream(filePath).pipe(csv());
@@ -119,7 +119,7 @@ export class CsvImportService {
                 coordinates = await this.geocodeAddress(
                     data["Beach Name"],
                     data["Community"],
-                    state
+                    stateCode
                 );
                 // Rate limiting: Google Maps has higher limits
                 // await new Promise(resolve => setTimeout(resolve, 100));
