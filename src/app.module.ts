@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AuthModule } from './auth/auth.module';
 import { LocationModule } from './location/location.module';
-import { MeasurementModule } from './measurement/measurement.module';
+
 
 @Module({
   imports: [
@@ -31,7 +31,7 @@ import { MeasurementModule } from './measurement/measurement.module';
     BeachesModule,
     AuthModule,
     LocationModule,
-    MeasurementModule,
+
   ],
 })
 export class AppModule { }

@@ -16,15 +16,14 @@ export class BeachesController {
   @ApiOperation({ summary: 'Get all beaches' })
   @ApiResponse({ status: 200, description: 'Return all beaches.' })
   @ApiQuery({ name: 'state', required: false, description: 'Filter by state code (e.g. MA)' })
-  @ApiQuery({ name: 'city', required: false, description: 'Filter by city name' })
+
   @ApiQuery({ name: 'asOf', required: false, description: 'Date to calculate status for (YYYY-MM-DD)' })
   @CacheTTL(300000) // 5 minutes
   async findAll(
     @Query('state') state?: string,
-    @Query('city') city?: string,
     @Query('asOf') asOf?: string,
   ) {
-    const beaches = await this.beachesService.findAll({ state, city, asOf });
+    const beaches = await this.beachesService.findAll({ state, asOf });
     this.logger.log(`Fetching all beaches ${beaches?.length}`);
     return beaches;
   }
@@ -48,23 +47,5 @@ export class BeachesController {
   @ApiOperation({ summary: 'Update a beach' })
   update(@Param('id') id: number, @Body() beach: Partial<Beach>) {
     return this.beachesService.update(id, beach);
-  }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a beach' })
-  delete(@Param('id') id: number) {
-    return this.beachesService.delete(id);
-  }
-
-  @Post(':id/geocode')
-  @ApiOperation({ summary: 'Update beach coordinates' })
-  updateCoordinates(@Param('id') id: number) {
-    return this.beachesService.updateBeachCoordinates(id);
-  }
-
-  @Post('geocode/all')
-  @ApiOperation({ summary: 'Update all beach coordinates' })
-  updateAllCoordinates() {
-    return this.beachesService.updateAllBeachCoordinates();
   }
 }

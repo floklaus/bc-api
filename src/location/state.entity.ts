@@ -1,28 +1,31 @@
-import { Entity, Column, ManyToOne, OneToMany, Unique } from 'typeorm';
+import { Column, Entity, OneToMany, Unique } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { BaseEntity } from 'src/database/base.entity';
-import { City } from './city.entity';
+import { BaseEntity } from '../database/base.entity';
+import { County } from './county.entity';
+import { StateHistory } from './state-history.entity';
+import { Beach } from 'src/beaches/beach.entity';
 
 @Entity('state')
-@Unique("state_name_code", ["name", "code"])
+@Unique(['code'])
 export class State extends BaseEntity {
+    @ApiProperty({ description: 'The name/code of the state/jurisdiction' })
+    @Column()
+    code: string;
 
-  @ApiProperty({ description: 'State name' })
-  @Column({ unique: true })
-  name: string;
+    @ApiProperty({ description: 'The full name of the state/jurisdiction' })
+    @Column({ nullable: true })
+    name: string;
 
-  @ApiProperty({ description: 'State code (2-letter abbreviation)' })
-  @Column({ unique: true })
-  code: string;
+    @ApiProperty({ description: 'Whether the state/jurisdiction is active' })
+    @Column({ default: false })
+    active: boolean;
 
-  @ApiProperty({ description: 'Whether the state is active', default: false })
-  @Column({ default: false })
-  active: boolean;
+    @OneToMany(() => County, (county) => county.state)
+    counties: County[];
 
-  @ApiProperty({ description: 'Number of beaches in state', required: false })
-  beachCount?: number;
+    @OneToMany(() => StateHistory, (history) => history.state)
+    history: StateHistory[];
 
-  @ApiProperty({ type: () => [City], description: 'Cities in this state' })
-  @OneToMany(() => City, (city) => city.state)
-  cities: City[];
+    @OneToMany(() => Beach, (beach) => beach.state)
+    beaches: Beach[];
 }

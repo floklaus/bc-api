@@ -32,12 +32,12 @@ The Beach Monitor API tracks beach closures and water quality measurements for b
 
 ### 3. Location Services
 - **State Management**: Track states with active/inactive status (currently focused on Massachusetts)
-- **City Management**: Organize beaches by city and county
-- **Hierarchical Structure**: State → County → City → Beach relationships
-- **Location Filtering**: Filter beaches by state and city
+- **City Management**: Organize beaches by state and county
+- **Hierarchical Structure**: State → County → Beach → BeachHistory relationships
+- **Location Filtering**: Filter beaches by state and county
 
 ### 4. Advanced Querying
-- **Multi-Filter Support**: Filter beaches by state, city, and date
+- **Multi-Filter Support**: Filter beaches by state, county, and date
 - **Status Filtering**: Query beaches by open/closed status
 - **Date-Based Status**: Calculate beach status for specific dates using `asOf` parameter
 - **Caching**: 5-minute cache for beach listings to improve performance
@@ -55,7 +55,7 @@ The Beach Monitor API tracks beach closures and water quality measurements for b
 ## API Endpoints
 
 ### Beaches
-- `GET /beaches` - List all beaches with optional filters (state, city, asOf)
+- `GET /beaches` - List all beaches with optional filters (state, asOf)
 - `GET /beaches/:id` - Get detailed beach information including measurements
 - `POST /beaches` - Create a new beach
 - `PUT /beaches/:id` - Update beach information
@@ -200,7 +200,7 @@ Beach listings are cached for 5 minutes to reduce database load while ensuring r
 ### Flexible Filtering
 The API supports multiple filter combinations:
 - Filter by state to see all beaches in Massachusetts
-- Filter by city to narrow down to specific municipalities
+- Filter by county to narrow down to specific county
 - Use `asOf` parameter to check historical beach status
 
 ## Data Seeding

@@ -1,17 +1,19 @@
-import { Entity, Column, OneToMany, Unique } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { BaseEntity } from 'src/database/base.entity';
-import { City } from './city.entity';
+import { State } from './state.entity';
+import { Beach } from 'src/beaches/beach.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('county')
-@Unique("county_name_code", ["name", "code"])
+@Unique('county_name_state', ['name', 'state'])
 export class County extends BaseEntity {
+    @ApiProperty({ description: 'The name of the county' })
+    @Column()
+    name: string;
 
-  @Column({ unique: true })
-  name: string;
+    @ManyToOne(() => State, (state) => state.counties)
+    state: State;
 
-  @Column({ unique: true })
-  code: string;
-
-  @OneToMany(() => City, (city) => city.state)
-  cities: City[];
+    @OneToMany(() => Beach, (beach) => beach.county)
+    beaches: Beach[];
 }
