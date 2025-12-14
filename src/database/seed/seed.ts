@@ -13,6 +13,7 @@ import { Waterbody } from '../../beaches/waterbody.entity';
 import { Access } from '../../beaches/access.entity';
 import { BeachHistory } from '../../beaches/beach-history.entity';
 import { MonitoringFrequency } from '../../beaches/monitoring-frequency.entity';
+import { BeachIndicator } from '../../beaches/beach-indicator.entity';
 
 config();
 
@@ -370,6 +371,16 @@ async function seedActions() {
     const beaches = await beachRepo.find();
     const beachMap = new Map(beaches.map(b => [b.externalId, b]));
 
+    // Indicator Map
+    const indicatorRepo = AppDataSource.getRepository(BeachIndicator);
+    const indicatorMap = new Map<string, BeachIndicator>();
+
+    const getIndicatorName = (code: string): string => {
+        if (code === 'ENTERO') return 'Enterococcus faecalis';
+        if (code === 'ECOLI') return 'Escherichia coli';
+        return code;
+    };
+
     for (const a of actions) {
         const beachId = a['Beach ID'];
         const beach = beachMap.get(beachId);
@@ -387,6 +398,35 @@ async function seedActions() {
         actionEntity.startDate = parseCustomDate(a['ActionStart Date']);
         actionEntity.endDate = parseCustomDate(a['ActionEnd Date']);
         actionEntity.year = parseInt(a['Year']);
+
+        // Duration
+        const duration = parseFloat(a['ActionDurationDays']);
+        if (!isNaN(duration)) {
+            actionEntity.durationDays = duration;
+        }
+
+        // Indicators - Split by comma
+        const indicatorRaw = a['ActionIndicator']; // e.g. "ENTERO, ECOLI"
+        if (indicatorRaw) {
+            const codes = indicatorRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            const actionIndicators: BeachIndicator[] = [];
+
+            for (const code of codes) {
+                if (!indicatorMap.has(code)) {
+                    let indicator = await indicatorRepo.findOneBy({ code: code });
+                    if (!indicator) {
+                        indicator = new BeachIndicator();
+                        indicator.code = code;
+                        indicator.name = getIndicatorName(code);
+                        await indicatorRepo.save(indicator);
+                    }
+                    indicatorMap.set(code, indicator);
+                }
+                const ind = indicatorMap.get(code);
+                if (ind) actionIndicators.push(ind);
+            }
+            actionEntity.indicators = actionIndicators;
+        }
 
         await actionRepo.save(actionEntity);
     }

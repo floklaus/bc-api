@@ -3,6 +3,7 @@ import { BeachesService } from './beaches.service';
 import { BeachesController } from './beaches.controller';
 import { Beach } from './beach.entity';
 import { BeachAction } from './beach-action.entity';
+import { BeachIndicator } from './beach-indicator.entity';
 import { State } from '../location/state.entity';
 import { County } from '../location/county.entity';
 import { Waterbody } from './waterbody.entity';
@@ -16,6 +17,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 @Module({
   providers: [BeachesService],
   controllers: [BeachesController],
-  imports: [TypeOrmModule.forFeature([Beach, BeachAction, State, County, Waterbody, Access, BeachHistory, MonitoringFrequency, BeachImage, StateHistory])],
+  imports: [TypeOrmModule.forFeature([Beach, BeachAction, BeachIndicator, State, County, Waterbody, Access, BeachHistory, MonitoringFrequency, BeachImage, StateHistory])],
 })
 export class BeachesModule { }

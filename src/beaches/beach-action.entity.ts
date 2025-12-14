@@ -1,6 +1,7 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 import { BaseEntity } from 'src/database/base.entity';
 import { Beach } from './beach.entity';
+import { BeachIndicator } from './beach-indicator.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity('beach_action')
@@ -26,6 +27,14 @@ export class BeachAction extends BaseEntity {
     @Column({ type: 'int' })
     year: number;
 
+    @ApiProperty({ description: 'Duration of the action in days' })
+    @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+    durationDays: number;
+
     @ManyToOne(() => Beach, (beach) => beach.actions)
     beach: Beach;
+
+    @ManyToMany(() => BeachIndicator, (indicator) => indicator.actions)
+    @JoinTable()
+    indicators: BeachIndicator[];
 }
